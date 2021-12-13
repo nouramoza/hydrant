@@ -3,9 +3,9 @@ package com.bookiply.interview.assignment.web.controler;
 
 import com.bookiply.interview.assignment.service.NearestFireHosesService;
 import com.bookiply.interview.assignment.web.dto.GenericRestResponse;
-import com.bookiply.interview.assignment.web.dto.HydrantDto;
-import com.bookiply.interview.assignment.web.dto.InputDto;
-import com.bookiply.interview.assignment.web.dto.OutputDto;
+import com.bookiply.interview.assignment.web.dto.FireInfoDto;
+import com.bookiply.interview.assignment.web.dto.NearestHydrantsToFireDto;
+import com.bookiply.interview.assignment.web.dto.PointDto;
 import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,50 +31,41 @@ public class NearestServiceController {
 
     @PostMapping("/findNearestFireHoses")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = OutputDto.class, httpMethod = "POST")
+            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
     public GenericRestResponse findNearestFireHoses(
             @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody InputDto inputDto) throws BadRequestAlertException {
+            @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
-        return nearestFireHosesService.getNearestHydrants(inputDto);
+        return nearestFireHosesService.getNearestHydrants(fireInfoDto);
     }
 
-    @PostMapping("/findNearestFireHoses2")
-    @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = OutputDto.class, httpMethod = "POST")
-    public GenericRestResponse cardVerification(
-            @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody HydrantDto hydrantDto) {
-        log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
-        return nearestFireHosesService.getNearestHydrants(hydrantDto);
-    }
+//    @PostMapping("/findNearestFireHoses2")
+//    @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
+//            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
+//    public GenericRestResponse cardVerification(
+//            @ApiParam(value = "HydrantDto", required = true)
+//            @RequestBody HydrantDto hydrantDto) {
+//        log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
+//        return nearestFireHosesService.getNearestHydrants(hydrantDto);
+//    }
 
     @PostMapping("/findNearestFireHosesJsonOut")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = OutputDto.class, httpMethod = "POST")
-    public OutputDto findNearestFireHosesJsonOut(
+            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
+    public NearestHydrantsToFireDto findNearestFireHosesJsonOut(
             @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody InputDto inputDto) throws BadRequestAlertException {
+            @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
-        return nearestFireHosesService.getNearestHydrantsJsonOut(inputDto);
+        return nearestFireHosesService.getNearestHydrantsJsonOut(fireInfoDto);
     }
 
     @GetMapping("/getInputJson")
     @ApiOperation(value = "REST request to getInputJson",
-            produces = "Application/JSON", response = InputDto.class, httpMethod = "GET")
+            produces = "Application/JSON", response = FireInfoDto.class, httpMethod = "GET")
     public String getInputJson() throws JsonProcessingException {
-        InputDto inputDto = new InputDto(new Point(1,2), 2L);
+        Double[] ss = {40.43, -74.1};
+        FireInfoDto fireInfoDto = new FireInfoDto(new PointDto("point", ss), 2L);
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(inputDto);
+        return objectMapper.writeValueAsString(fireInfoDto);
     }
-
-    /*{
-    "theGeom":{
-        "x":1.0,
-        "y":2.0
-    },
-    "numberOfFireTrucks":2
-}*/
-
-
 }

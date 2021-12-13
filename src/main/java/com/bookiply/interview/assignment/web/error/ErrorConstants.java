@@ -17,6 +17,8 @@ public final class ErrorConstants {
     public static class InputValidationMessage{
         public static final String WRONG_TRUCK_NUMBERS_KEY = "wrongTruckNumbers";
         public static final String WRONG_TRUCK_NUMBERS_MSG = "Number of trucks is Not Valid.";
+        public static final String API_EXCEPTION_KEY = "apiConnection";
+        public static final String API_EXCEPTION_MSG = "External API does not Response";
     }
 
 }

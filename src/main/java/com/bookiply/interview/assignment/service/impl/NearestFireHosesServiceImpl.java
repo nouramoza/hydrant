@@ -4,11 +4,14 @@ import com.bookiply.interview.assignment.service.NearestFireHosesService;
 import com.bookiply.interview.assignment.web.dto.*;
 import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import com.bookiply.interview.assignment.web.error.ErrorConstants;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -23,41 +26,44 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     /**
      * get N nearest hydrants and total length of fire hoses
      *
-     * @param inputDto consists of fire coorditation and number of trucks
+     * @param fireInfoDto consists of fire coorditation and number of trucks
      * @return GenericRestResponse
      */
     @Override
-    public GenericRestResponse getNearestHydrants(InputDto inputDto) throws BadRequestAlertException {
-        checkValidations(inputDto);
-        List<HydrantDto> hydrantDtoList = getAreaFireBrigades(inputDto);
-        OutputDto outputDto = findNearestHydrant(inputDto, hydrantDtoList);
-        return new GenericRestResponse(GenericRestResponse.STATUS.SUCCESS, outputDto.toString());
+    public GenericRestResponse getNearestHydrants(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
+        checkValidations(fireInfoDto);
+        List<HydrantDto> hydrantDtoList = getAreaFireBrigades(fireInfoDto);
+        NearestHydrantsToFireDto nearestHydrantsToFireDto = findNearestHydrant(fireInfoDto, hydrantDtoList);
+        return new GenericRestResponse(GenericRestResponse.STATUS.SUCCESS, nearestHydrantsToFireDto.toString());
     }
 
     /**
      * get N nearest hydrants and total length of fire hoses
      *
-     * @param inputDto consists of fire coorditation and number of trucks
-     * @return OutputDto - total firehoses length in meters
+     * @param fireInfoDto consists of fire coorditation and number of trucks
+     * @return NearestHydrantsToFireDto - total firehoses length in meters
      * - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
      */
     @Override
-    public OutputDto getNearestHydrantsJsonOut(InputDto inputDto) throws BadRequestAlertException {
+    public NearestHydrantsToFireDto getNearestHydrantsJsonOut(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
 
-        checkValidations(inputDto);
+        checkValidations(fireInfoDto);
         /** find hydrants in a circular */
-        List<HydrantDto> hydrantDtoList = getAreaFireBrigades(inputDto);
-        return findNearestHydrant(inputDto, hydrantDtoList);
+        List<HydrantDto> hydrantDtoList = getAreaFireBrigades(fireInfoDto);
+
+
+        test(hydrantDtoList);
+        return findNearestHydrant(fireInfoDto, hydrantDtoList);
     }
 
 
     /**
      * checks input values correctness
      *
-     * @param inputDto consists of fire coordination and number of trucks
+     * @param fireInfoDto consists of fire coordination and number of trucks
      */
-    private void checkValidations(InputDto inputDto) throws BadRequestAlertException {
-        if (inputDto.getNumberOfFireTrucks() < 1) {
+    private void checkValidations(FireInfoDto fireInfoDto) throws BadRequestAlertException {
+        if (fireInfoDto.getNumberOfFireTrucks() < 1) {
             throw new BadRequestAlertException(ErrorConstants.InputValidationMessage.WRONG_TRUCK_NUMBERS_MSG,
                     INPUT_DTO, ErrorConstants.InputValidationMessage.WRONG_TRUCK_NUMBERS_KEY);
         }
@@ -66,83 +72,98 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     /**
      * get hydrants in a cicular dimension
      *
-     * @param inputDto consists of fire coordination and number of trucks
+     * @param fireInfoDto consists of fire coordination and number of trucks
      * @return List<HydrantDto> list of hydrant in the given circular dimension
      */
-    private List<HydrantDto> getAreaFireBrigades(InputDto inputDto) {
+    private List<HydrantDto> getAreaFireBrigades(FireInfoDto fireInfoDto) throws JsonProcessingException, BadRequestAlertException {
+        List<HydrantDto> hydrantDtoList;
+//        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json?$where=within_circle(the_geom,%20"
+//                + fireInfoDto.getTheGeom().getCoordinates()[0] + ",%20" + fireInfoDto.getTheGeom().getCoordinates()[1] +
+//                ",%20100)";
+//
+        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
 
-        List<HydrantDto> hydrantDtoList = new ArrayList<>();
-        //1
-        HydrantDto hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H425919a");
-        PointDto point = new PointDto(-73.79456804377382, 40.7722177771488);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
+//        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json?$where=within_circle(the_geom,%2040.71,%20-74.0,%20100)";
 
-        //2
-        hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H325449");
-        point = new PointDto(-73.91289250895464, 40.644346617665086);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
 
-        //3
-        hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H307276");
-        point = new PointDto(-73.95303997851815, 40.72505714515934);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
-
-        //4
-        hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H301843");
-        point = new PointDto(-73.99463256503688, 40.693988927757644);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
-
-        //5
-        hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H439410");
-        point = new PointDto(-73.93569187481359, 40.73528872722265);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
-
-        //6
-        hydrantDto = new HydrantDto();
-        hydrantDto.setUnitId("H328476");
-        point = new PointDto(-73.91147293739287, 40.63402697951722);
-        hydrantDto.setTheGeom(point);
-        hydrantDtoList.add(hydrantDto);
-
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String resultStr = restTemplate.getForObject(uri, String.class);
+            ObjectMapper mapper = new ObjectMapper();
+            hydrantDtoList = mapper.readValue(resultStr, new TypeReference<List<HydrantDto>>() {});
+        } catch (Exception e) {
+            throw new BadRequestAlertException(ErrorConstants.InputValidationMessage.API_EXCEPTION_MSG,
+                    INPUT_DTO, ErrorConstants.InputValidationMessage.API_EXCEPTION_KEY);
+        }
         return hydrantDtoList;
     }
 
     /**
      * find N nearest hydrants from the list of given hydrants and total length of firehoses. this method is the main business of the app
      *
-     * @param inputDto       consists of fire coordination and number of trucks
+     * @param fireInfoDto       consists of fire coordination and number of trucks
      * @param hydrantDtoList list of hydrants in the circular dimension
-     * @return OutputDto - total firehoses length in meters
+     * @return NearestHydrantsToFireDto - total firehoses length in meters
      * - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
      */
-    private OutputDto findNearestHydrant(InputDto inputDto, List<HydrantDto> hydrantDtoList) {
+    private NearestHydrantsToFireDto findNearestHydrant(FireInfoDto fireInfoDto, List<HydrantDto> hydrantDtoList) {
         List<SelectedHydrantDto> selectedHydrantDtoList = new ArrayList<>();
         Double totalFirehosesLength = 0.0;
         Double maxDistance = 0.0;
-        for (int i = 0; i < hydrantDtoList.size(); i++) {
-            Double distanceToFire = Math.sqrt(Math.pow(Math.abs((inputDto.getTheGeom().getX() - hydrantDtoList.get(i).getTheGeom().getX())), 2)
-                    + Math.pow(Math.abs((inputDto.getTheGeom().getY() - hydrantDtoList.get(i).getTheGeom().getY())), 2));
-            if (selectedHydrantDtoList.size() < inputDto.getNumberOfFireTrucks()) {
+        int maxDistanceIndex = 0;
+        int index = 0;
+
+        hydrantDtoList.stream()
+        .forEach(hydrantDto -> {
+            Double distanceToFire = Math.sqrt(Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[0] -
+                    hydrantDto.getThe_geom().getCoordinates()[0])), 2)
+                    + Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[1] - hydrantDto.getThe_geom().getCoordinates()[1])), 2));
+
+        });
+
+
+        for (HydrantDto hydrantDto : hydrantDtoList) {
+            Double distanceToFire = Math.sqrt(Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[0] -
+                    hydrantDto.getThe_geom().getCoordinates()[0])), 2)
+                    + Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[1] - hydrantDto.getThe_geom().getCoordinates()[1])), 2));
+            if (selectedHydrantDtoList.size() < fireInfoDto.getNumberOfFireTrucks()) {
                 totalFirehosesLength += distanceToFire;
-                selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDtoList.get(i).getUnitId(), distanceToFire));
-                maxDistance = maxDistance > distanceToFire ? maxDistance : distanceToFire;
+                selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDto.getUnitid(), distanceToFire));
+                if (maxDistance < distanceToFire) {
+                    maxDistance = distanceToFire;
+                    maxDistanceIndex = index;
+                }
             } else if (maxDistance > distanceToFire) {
                 totalFirehosesLength -= (maxDistance - distanceToFire);
-                selectedHydrantDtoList.remove(maxDistance);
-                selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDtoList.get(i).getUnitId(), distanceToFire));
+                selectedHydrantDtoList.remove(maxDistanceIndex);
+                selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDto.getUnitid(), distanceToFire));
                 maxDistance = distanceToFire;
+                maxDistanceIndex = index;
             }
+            index++;
         }
-        return new OutputDto(totalFirehosesLength * 1000, selectedHydrantDtoList);
+        return new NearestHydrantsToFireDto(totalFirehosesLength * 1000, selectedHydrantDtoList);
+    }
+
+    private void test(List<HydrantDto> hydrantDtos) {
+        HydrantDto minX = hydrantDtos.stream()
+                .min(Comparator.comparingDouble(HydrantDto::getLatitude))
+                .get();
+        HydrantDto maxX = hydrantDtos.stream()
+                .max(Comparator.comparingDouble(HydrantDto::getLatitude))
+                .get();
+        HydrantDto minY = hydrantDtos.stream()
+                .min(Comparator.comparingDouble(HydrantDto::getLongitude))
+                .get();
+        HydrantDto maxY = hydrantDtos.stream()
+                .max(Comparator.comparingDouble(HydrantDto::getLongitude))
+                .get();
+
+        System.out.println("minX ==> " + minX.toString());
+        System.out.println("maxX ==> " + maxX.toString());
+        System.out.println("minY ==> " + minY.toString());
+        System.out.println("maxY ==> " + maxY.toString());
+
+
     }
 }

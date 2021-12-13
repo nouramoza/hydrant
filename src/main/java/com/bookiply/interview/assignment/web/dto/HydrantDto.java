@@ -10,13 +10,29 @@ import java.awt.geom.Point2D;
 @Getter
 @Setter
 public class HydrantDto {
-    private Long objectId;
-    private PointDto theGeom;
-    private String unitId;
-    private Double pointX;
-    private Double pointY;
+    private Long objectid;
+    private PointDto the_geom;
+    private String unitid;
+    private Long boro;
+    private Double point_x;
+    private Double point_y;
     private String cb;
     private Double latitude;
-    private Double longtitude;
+    private Double longitude;
 
+
+    @Override
+    public String toString() {
+        return "HydrantDto{" +
+                "objectid=" + objectid +
+                ", the_geom=" + the_geom +
+                ", unitid='" + unitid + '\'' +
+                ", boro=" + boro +
+                ", point_x=" + point_x +
+                ", point_y=" + point_y +
+                ", cb='" + cb + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                '}';
+    }
 }

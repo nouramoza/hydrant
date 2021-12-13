@@ -8,9 +8,9 @@ import java.awt.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class InputDto {
+public class FireInfoDto {
     @NonNull
-    private Point theGeom;
+    private PointDto theGeom;
     @NonNull
     private Long numberOfFireTrucks;
 

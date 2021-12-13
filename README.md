@@ -30,12 +30,11 @@ You have to expose an API endpoint accepting the parameters:
 
 {
     "theGeom":{
-        "x":1.0,
-        "y":2.0
+        "type":"point",
+        "coordinates":[40.43,-74.1]
     },
     "numberOfFireTrucks":2
-}
-   
+}   
 
 #### Output
 

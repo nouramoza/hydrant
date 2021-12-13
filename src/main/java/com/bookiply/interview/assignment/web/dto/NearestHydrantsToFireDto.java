@@ -8,7 +8,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OutputDto {
+public class NearestHydrantsToFireDto {
     private Double totalFirehosesLength;
     private List<SelectedHydrantDto> hydrants;
 

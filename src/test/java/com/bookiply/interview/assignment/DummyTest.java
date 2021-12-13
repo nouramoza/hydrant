@@ -1,6 +1,7 @@
 package com.bookiply.interview.assignment;
 
-import com.bookiply.interview.assignment.web.dto.InputDto;
+import com.bookiply.interview.assignment.web.dto.FireInfoDto;
+import com.bookiply.interview.assignment.web.dto.PointDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -38,10 +39,13 @@ class DummyTest {
     }
 
     @Test
-    public void notValidCardVerification() throws Exception {
-        InputDto inputDto = new InputDto(new Point(1,2), 2L);
+    public void test1() throws Exception {
 
-        String inputStr = mapToJson(inputDto);
+        Double[] point = {40.43, -74.1};
+
+        FireInfoDto fireInfoDto = new FireInfoDto(new PointDto("point", point), 2L);
+
+        String inputStr = mapToJson(fireInfoDto);
         RequestBuilder req = post(FIND_NEAREST_FIREHOSES_URI)
                 .contentType(MediaType.APPLICATION_JSON) // for DTO
                 .content(inputStr);
