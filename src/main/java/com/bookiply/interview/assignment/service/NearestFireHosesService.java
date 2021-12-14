@@ -12,5 +12,7 @@ public interface NearestFireHosesService {
 
     public GenericRestResponse getNearestHydrants(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException;
 
-    public NearestHydrantsToFireDto getNearestHydrantsJsonOut(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException;
+    public NearestHydrantsToFireDto getNearestHydrantsCodeBase(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException;
+
+    public NearestHydrantsToFireDto getNearestHydrantsQueryBase(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException;
 }

@@ -1,12 +1,11 @@
 package com.bookiply.interview.assignment;
 
-import com.bookiply.interview.assignment.web.dto.FireInfoDto;
 import com.bookiply.interview.assignment.web.dto.NearestHydrantsToFireDto;
+import com.bookiply.interview.assignment.web.dto.FireInfoDto;
 import com.bookiply.interview.assignment.web.dto.PointDto;
 import com.bookiply.interview.assignment.web.dto.SelectedHydrantDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 
-import java.awt.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;

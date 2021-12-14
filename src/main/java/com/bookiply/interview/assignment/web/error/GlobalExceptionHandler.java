@@ -1,4 +1,4 @@
-package com.bookiply.interview.assignment.web.controler;
+package com.bookiply.interview.assignment.web.error;
 
 import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import org.springframework.http.HttpStatus;
