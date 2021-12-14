@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.awt.*;
 
 @RestController
-@RequestMapping("/api/v1/nearest-service")
+@RequestMapping("/api/v1/findHydrant-service")
 @Api(value = "Find N Nearest fireHoses API")
 public class NearestServiceController {
     Logger log = LoggerFactory.getLogger(NearestServiceController.class);
@@ -39,15 +39,6 @@ public class NearestServiceController {
         return nearestFireHosesService.getNearestHydrants(fireInfoDto);
     }
 
-//    @PostMapping("/findNearestFireHoses2")
-//    @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-//            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
-//    public GenericRestResponse cardVerification(
-//            @ApiParam(value = "HydrantDto", required = true)
-//            @RequestBody HydrantDto hydrantDto) {
-//        log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
-//        return nearestFireHosesService.getNearestHydrants(hydrantDto);
-//    }
 
     @PostMapping("/findNearestFireHosesJsonOut")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
@@ -59,13 +50,4 @@ public class NearestServiceController {
         return nearestFireHosesService.getNearestHydrantsJsonOut(fireInfoDto);
     }
 
-    @GetMapping("/getInputJson")
-    @ApiOperation(value = "REST request to getInputJson",
-            produces = "Application/JSON", response = FireInfoDto.class, httpMethod = "GET")
-    public String getInputJson() throws JsonProcessingException {
-        Double[] ss = {40.43, -74.1};
-        FireInfoDto fireInfoDto = new FireInfoDto(new PointDto("point", ss), 2L);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(fireInfoDto);
-    }
 }

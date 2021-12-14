@@ -48,20 +48,20 @@ The API endpoint should return a JSON object containing:
  
 ```output json example
 {
-    "totalFirehosesLength": 1438,
-    "hydrants": [
-        {
-          "unitid": "H325449",
-              "distanceToFire": 24
-        },        
-        {
-          "unitid": "H301843",
-          "distanceToFire": 414
-        },        
-        {
-          "unitid": "H325111",
-          "distanceToFire": 1000
-        }
-    ] 
+  "totalFirehosesLength": 485.52237958215517,
+  "hydrants": [
+    {
+      "unitId": "H415472",
+      "distanceToFire": 161.83913805999595
+    },
+    {
+      "unitId": "H415833",
+      "distanceToFire": 161.83942225079014
+    },
+    {
+      "unitId": "H415678",
+      "distanceToFire": 161.84381927136909
+    }
+  ]
 }
 ```
