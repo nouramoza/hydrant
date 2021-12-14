@@ -28,13 +28,15 @@ You have to expose an API endpoint accepting the parameters:
 - Coordinates of the fire (any format you prefer)
 - Number of fire trucks N
 
+```input json example
 {
     "theGeom":{
         "type":"point",
         "coordinates":[40.43,-74.1]
     },
-    "numberOfFireTrucks":2
+    "numberOfFireTrucks":3
 }   
+```
 
 #### Output
 
@@ -44,7 +46,7 @@ The API endpoint should return a JSON object containing:
    
 #### Example outcome from the API
  
-```json
+```output json example
 {
     "totalFirehosesLength": 1438,
     "hydrants": [

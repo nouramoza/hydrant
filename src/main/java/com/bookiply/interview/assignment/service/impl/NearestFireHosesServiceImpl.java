@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for finding nearest hydrants and total legnth.
@@ -52,7 +53,9 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         List<HydrantDto> hydrantDtoList = getAreaFireBrigades(fireInfoDto);
 
 
-        test(hydrantDtoList);
+//        test(hydrantDtoList);
+
+        List<SelectedHydrantDto> sortedHydrants = sortHydrants(hydrantDtoList);
         return findNearestHydrant(fireInfoDto, hydrantDtoList);
     }
 
@@ -90,7 +93,8 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
             RestTemplate restTemplate = new RestTemplate();
             String resultStr = restTemplate.getForObject(uri, String.class);
             ObjectMapper mapper = new ObjectMapper();
-            hydrantDtoList = mapper.readValue(resultStr, new TypeReference<List<HydrantDto>>() {});
+            hydrantDtoList = mapper.readValue(resultStr, new TypeReference<List<HydrantDto>>() {
+            });
         } catch (Exception e) {
             throw new BadRequestAlertException(ErrorConstants.InputValidationMessage.API_EXCEPTION_MSG,
                     INPUT_DTO, ErrorConstants.InputValidationMessage.API_EXCEPTION_KEY);
@@ -99,9 +103,34 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     }
 
     /**
+     * sort the found hydrant by their distance to the fire coordinate
+     *
+     * @param hydrantDtoList all the hydrants that found in the given circular dimension
+     * @return List<SelectedHydrantDto> list of sorted selected hydrants in the given circular dimension
+     */
+    private List<SelectedHydrantDto> sortHydrants(List<HydrantDto> hydrantDtoList) {
+        int n = hydrantDtoList.size();
+        List<SelectedHydrantDto> selectedHydrantDtoList = new ArrayList<>();
+        for(int i = 0; i < n; i++) {
+            Double x = hydrantDtoList.get(i).getThe_geom().getCoordinates()[0],
+                    y = hydrantDtoList.get(i).getThe_geom().getCoordinates()[1];
+            SelectedHydrantDto selectedHydrantDto = new SelectedHydrantDto(hydrantDtoList.get(i).getUnitid(),
+                    (x * x) + (y * y));
+            selectedHydrantDtoList.add(selectedHydrantDto);
+        }
+
+        selectedHydrantDtoList = selectedHydrantDtoList.stream()
+                .sorted(Comparator.comparing(SelectedHydrantDto::getDistanceToFire))
+                .collect(Collectors.toList());
+
+        return selectedHydrantDtoList;
+    }
+
+
+    /**
      * find N nearest hydrants from the list of given hydrants and total length of firehoses. this method is the main business of the app
      *
-     * @param fireInfoDto       consists of fire coordination and number of trucks
+     * @param fireInfoDto    consists of fire coordination and number of trucks
      * @param hydrantDtoList list of hydrants in the circular dimension
      * @return NearestHydrantsToFireDto - total firehoses length in meters
      * - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
@@ -113,13 +142,29 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         int maxDistanceIndex = 0;
         int index = 0;
 
-        hydrantDtoList.stream()
-        .forEach(hydrantDto -> {
-            Double distanceToFire = Math.sqrt(Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[0] -
-                    hydrantDto.getThe_geom().getCoordinates()[0])), 2)
-                    + Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[1] - hydrantDto.getThe_geom().getCoordinates()[1])), 2));
-
-        });
+//        hydrantDtoList.stream()
+//                .forEach(hydrantDto -> {
+//                    Double distanceToFire = Math.sqrt(Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[0] -
+//                            hydrantDto.getThe_geom().getCoordinates()[0])), 2)
+//                            + Math.pow(Math.abs((fireInfoDto.getTheGeom().getCoordinates()[1] - hydrantDto.getThe_geom().getCoordinates()[1])), 2));
+//
+//                    if (selectedHydrantDtoList.size() < fireInfoDto.getNumberOfFireTrucks()) {
+//                        totalFirehosesLength[0].updateAndGet(v -> v + distanceToFire);
+//                        selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDto.getUnitid(), distanceToFire));
+//                        if (maxDistance[0] < distanceToFire) {
+//                            maxDistance[0] = distanceToFire;
+//                            maxDistanceIndex[0] = index[0];
+//                        }
+//                    } else if (maxDistance[0] > distanceToFire) {
+//                        totalFirehosesLength[0].updateAndGet(v -> v - (maxDistance[0] - distanceToFire));
+//                        selectedHydrantDtoList.remove(maxDistanceIndex[0]);
+//                        selectedHydrantDtoList.add(new SelectedHydrantDto(hydrantDto.getUnitid(), distanceToFire));
+//                        maxDistance[0] = distanceToFire;
+//                        maxDistanceIndex[0] = index[0];
+//                    }
+//                    index[0]++;
+//
+//                });
 
 
         for (HydrantDto hydrantDto : hydrantDtoList) {
