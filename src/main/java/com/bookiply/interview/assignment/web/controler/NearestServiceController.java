@@ -24,22 +24,22 @@ public class NearestServiceController {
         this.nearestFireHosesService = nearestFireHosesService;
     }
 
-    @PostMapping("/findNearestFireHosesCodeBase")
+    @GetMapping("/findNearestFireHosesCodeBase")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
+            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "GET")
     public GenericRestResponse findNearestFireHoses(
             @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
+            FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
         return nearestFireHosesService.getNearestHydrantsCodeBase(fireInfoDto);
     }
 
-    @PostMapping("/findNearestFireHosesQueryBase")
+    @GetMapping(value = "/findNearestFireHosesQueryBase")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
+            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "GET")
     public GenericRestResponse findNearestFireHosesQueryBase(
             @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
+            FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
         return nearestFireHosesService.getNearestHydrantsQueryBase(fireInfoDto);
     }

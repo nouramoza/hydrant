@@ -7,7 +7,6 @@ import com.bookiply.interview.assignment.web.error.ErrorConstants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -61,6 +60,11 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
 
         List<SelectedHydrantDto> sortedHydrants = generateSelectedHydrants(fireInfoDto, hydrantDtoList);
 
+        for (int i =0; i < sortedHydrants.size(); i++) {
+            System.out.println(hydrantDtoList.get(i).toString());
+            System.out.println("distance to fire ==> " + sortedHydrants.get(i).getDistanceToFire());
+        }
+
         NearestHydrantsToFireDto nearestHydrantsToFireDto = generateNearestHydrantsDto(sortedHydrants);
 
         return new GenericRestResponse(GenericRestResponse.STATUS.SUCCESS, "SUCCESS", nearestHydrantsToFireDto);
@@ -103,29 +107,18 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
      * @return List<HydrantDto> list of n nearest hydrants based on fires coordinate and number of trucks
      */
     private List<HydrantDto> getSortedNearestFireBrigades(FireInfoDto fireInfoDto) throws BadRequestAlertException {
-        Double fireX = fireInfoDto.getTheGeom().getCoordinates()[0];
-        Double fireY = fireInfoDto.getTheGeom().getCoordinates()[1];
-
-        StringBuilder str = new StringBuilder("SELECT unitid,latitude,longitude ORDER BY ((latitude+(");
-        str.append(-fireX);
-        str.append("))*(latitude+(");
-        str.append(-fireX);
-        str.append(")))+((longitude+(");
-        str.append(-fireY);
-        str.append("))*(longitude+(");
-        str.append(-fireY);
-        str.append("))) limit ");
-        str.append(fireInfoDto.getNumberOfFireTrucks());
 
         String url = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
-                .queryParam("$query", str);
-        URI uriPlus = builder.encode().build(false).toUri();
+        StringBuilder orderStr = new StringBuilder("distance_in_meters(the_geom,'POINT(");
+        orderStr.append(fireInfoDto.getTheGeom().getCoordinates()[0]);
+        orderStr.append(" ");
+        orderStr.append(fireInfoDto.getTheGeom().getCoordinates()[1]);
+        orderStr.append(")')");
 
-        String strictlyEscapedQuery = StringUtils.replace(uriPlus.getRawQuery(), "+", "%2B");
-        URI uri = UriComponentsBuilder.fromUri(uriPlus)
-                .replaceQuery(strictlyEscapedQuery)
-                .build(true).toUri();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("$order", orderStr)
+                .queryParam("$limit", fireInfoDto.getNumberOfFireTrucks());
+        URI uri = builder.encode().build(false).toUri();
         return callApi(uri);
     }
 

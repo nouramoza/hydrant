@@ -3,6 +3,8 @@ package com.bookiply.interview.assignment.web.dto;
 
 import lombok.*;
 
+import java.util.Arrays;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -11,4 +13,10 @@ public class PointDto {
     private String type;
     private Double[] coordinates;
 
+    @Override
+    public String toString() {
+        return "PointDto{" +
+                "coordinates=" + Arrays.toString(coordinates) +
+                '}';
+    }
 }

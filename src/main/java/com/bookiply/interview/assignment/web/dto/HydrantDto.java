@@ -21,13 +21,10 @@ public class HydrantDto {
     @Override
     public String toString() {
         return "HydrantDto{" +
-                "objectid=" + objectid +
                 ", the_geom=" + the_geom +
                 ", unitid='" + unitid + '\'' +
-                ", boro=" + boro +
                 ", point_x=" + point_x +
                 ", point_y=" + point_y +
-                ", cb='" + cb + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 '}';
