@@ -1,6 +1,5 @@
 package com.bookiply.interview.assignment.web.error;
 
-import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

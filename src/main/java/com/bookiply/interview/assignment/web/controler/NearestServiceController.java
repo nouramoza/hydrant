@@ -1,6 +1,5 @@
 package com.bookiply.interview.assignment.web.controler;
 
-
 import com.bookiply.interview.assignment.service.NearestFireHosesService;
 import com.bookiply.interview.assignment.web.dto.NearestHydrantsToFireDto;
 import com.bookiply.interview.assignment.web.dto.GenericRestResponse;
@@ -25,21 +24,10 @@ public class NearestServiceController {
         this.nearestFireHosesService = nearestFireHosesService;
     }
 
-    @PostMapping("/findNearestFireHoses")
-    @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
-            produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
-    public GenericRestResponse findNearestFireHoses(
-            @ApiParam(value = "HydrantDto", required = true)
-            @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
-        log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
-        return nearestFireHosesService.getNearestHydrants(fireInfoDto);
-    }
-
-
     @PostMapping("/findNearestFireHosesCodeBase")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
             produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
-    public NearestHydrantsToFireDto findNearestFireHosesCodeBase(
+    public GenericRestResponse findNearestFireHoses(
             @ApiParam(value = "HydrantDto", required = true)
             @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");
@@ -49,7 +37,7 @@ public class NearestServiceController {
     @PostMapping("/findNearestFireHosesQueryBase")
     @ApiOperation(value = "REST request to Find N Nearest FireHoses and Total FireHoses Length",
             produces = "Application/JSON", response = NearestHydrantsToFireDto.class, httpMethod = "POST")
-    public NearestHydrantsToFireDto findNearestFireHosesQueryBase(
+    public GenericRestResponse findNearestFireHosesQueryBase(
             @ApiParam(value = "HydrantDto", required = true)
             @RequestBody FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
         log.debug("REST request to Find N Nearest FireHoses and Total FireHoses Length");

@@ -2,9 +2,6 @@ package com.bookiply.interview.assignment.web.dto;
 
 import lombok.*;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

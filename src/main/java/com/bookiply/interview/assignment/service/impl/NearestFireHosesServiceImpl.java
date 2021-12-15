@@ -4,7 +4,6 @@ import com.bookiply.interview.assignment.service.NearestFireHosesService;
 import com.bookiply.interview.assignment.web.dto.*;
 import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import com.bookiply.interview.assignment.web.error.ErrorConstants;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -30,37 +29,20 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
      * get N nearest hydrants and total length of fire hoses
      *
      * @param fireInfoDto consists of fire coordination and number of trucks
-     * @return GenericRestResponse
+     * @return NearestHydrantsToFireDto - total fire hoses length in meters
+     * - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
      */
     @Override
-    public GenericRestResponse getNearestHydrants(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
+    public GenericRestResponse getNearestHydrantsCodeBase(FireInfoDto fireInfoDto) throws BadRequestAlertException {
         checkValidations(fireInfoDto);
 
         List<HydrantDto> hydrantDtoList = getAreaFireBrigades(fireInfoDto);
 
         List<SelectedHydrantDto> sortedHydrants = sortHydrants(fireInfoDto, hydrantDtoList);
+
         NearestHydrantsToFireDto nearestHydrantsToFireDto = findNearestHydrant(fireInfoDto, sortedHydrants);
 
         return new GenericRestResponse(GenericRestResponse.STATUS.SUCCESS, "SUCCESS", nearestHydrantsToFireDto);
-    }
-
-    /**
-     * get N nearest hydrants and total length of fire hoses
-     *
-     * @param fireInfoDto consists of fire coordination and number of trucks
-     * @return NearestHydrantsToFireDto - total fire hoses length in meters
-     *                                  - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
-     */
-    @Override
-    public NearestHydrantsToFireDto getNearestHydrantsCodeBase(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
-
-        checkValidations(fireInfoDto);
-
-        List<HydrantDto> hydrantDtoList = getAreaFireBrigades(fireInfoDto);
-
-        List<SelectedHydrantDto> sortedHydrants = sortHydrants(fireInfoDto, hydrantDtoList);
-
-        return findNearestHydrant(fireInfoDto, sortedHydrants);
     }
 
     /**
@@ -68,10 +50,10 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
      *
      * @param fireInfoDto consists of fire coordination and number of trucks
      * @return NearestHydrantsToFireDto - total fire hoses length in meters
-     *                                  - list of N Nearest hydrants used by the fire brigade, with its unitId and distance to the fire
+     * - list of N Nearest hydrants used by the fire brigade, with its unitId and distance to the fire
      */
     @Override
-    public NearestHydrantsToFireDto getNearestHydrantsQueryBase(FireInfoDto fireInfoDto) throws BadRequestAlertException, JsonProcessingException {
+    public GenericRestResponse getNearestHydrantsQueryBase(FireInfoDto fireInfoDto) throws BadRequestAlertException {
 
         checkValidations(fireInfoDto);
 
@@ -79,7 +61,9 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
 
         List<SelectedHydrantDto> sortedHydrants = generateSelectedHydrants(fireInfoDto, hydrantDtoList);
 
-        return generateNearestHydrantsDto(sortedHydrants);
+        NearestHydrantsToFireDto nearestHydrantsToFireDto = generateNearestHydrantsDto(sortedHydrants);
+
+        return new GenericRestResponse(GenericRestResponse.STATUS.SUCCESS, "SUCCESS", nearestHydrantsToFireDto);
 
     }
 
@@ -101,39 +85,24 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
      * @param fireInfoDto consists of fire coordination and number of trucks
      * @return List<HydrantDto> list of hydrant in the given circular dimension
      */
-    private List<HydrantDto> getAreaFireBrigades(FireInfoDto fireInfoDto) throws JsonProcessingException, BadRequestAlertException {
-        List<HydrantDto> hydrantDtoList;
+    private List<HydrantDto> getAreaFireBrigades(FireInfoDto fireInfoDto) throws BadRequestAlertException {
 
         StringBuilder builder = new StringBuilder("https://data.cityofnewyork.us/resource/5bgh-vtsn.json?$order=latitude");
-//        builder.append(fireInfoDto.getTheGeom().getCoordinates()[0]);
-//        builder.append(",%20");
-//        builder.append(fireInfoDto.getTheGeom().getCoordinates()[1]);
-//        builder.append(",%20100)");
+        builder.append(fireInfoDto.getTheGeom().getCoordinates()[0]).append(",");
+        builder.append(fireInfoDto.getTheGeom().getCoordinates()[1]).append(", 1000");
+
         URI uri = URI.create(builder.toString());
-//        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json?$where=within_circle(the_geom,%20"
-//                + fireInfoDto.getTheGeom().getCoordinates()[0] + ",%20" + fireInfoDto.getTheGeom().getCoordinates()[1] +
-//                ",%20100)";
 
-//        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
-
-//        String uri = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json?$where=within_circle(the_geom,%2040.71,%20-74.0,%20100)";
-
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            String resultStr = restTemplate.getForObject(uri, String.class);
-            ObjectMapper mapper = new ObjectMapper();
-            hydrantDtoList = mapper.readValue(resultStr, new TypeReference<List<HydrantDto>>() {
-            });
-        } catch (Exception e) {
-            throw new BadRequestAlertException(e.getMessage(),
-                    FIRE_INFO_DTO, ErrorConstants.InputValidationMessage.API_EXCEPTION_KEY);
-        }
-        return hydrantDtoList;
+        return callApi(uri);
     }
 
-    private List<HydrantDto> getSortedNearestFireBrigades(FireInfoDto fireInfoDto) throws JsonProcessingException, BadRequestAlertException {
-        List<HydrantDto> hydrantDtoList;
-
+    /**
+     * get N nearest hydrants based on our input data
+     *
+     * @param fireInfoDto consists of fire coordination and number of trucks
+     * @return List<HydrantDto> list of n nearest hydrants based on fires coordinate and number of trucks
+     */
+    private List<HydrantDto> getSortedNearestFireBrigades(FireInfoDto fireInfoDto) throws BadRequestAlertException {
         Double fireX = fireInfoDto.getTheGeom().getCoordinates()[0];
         Double fireY = fireInfoDto.getTheGeom().getCoordinates()[1];
 
@@ -157,7 +126,11 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         URI uri = UriComponentsBuilder.fromUri(uriPlus)
                 .replaceQuery(strictlyEscapedQuery)
                 .build(true).toUri();
+        return callApi(uri);
+    }
 
+    private List<HydrantDto> callApi(URI uri) throws BadRequestAlertException {
+        List<HydrantDto> hydrantDtoList = new ArrayList<>();
         try {
             RestTemplate restTemplate = new RestTemplate();
             String resultStr = restTemplate.getForObject(uri, String.class);
@@ -174,7 +147,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     /**
      * sort the found hydrants by their distance to the fire coordinate
      *
-     * @param fireInfoDto consists of fire coordination and number of trucks
+     * @param fireInfoDto    consists of fire coordination and number of trucks
      * @param hydrantDtoList all the hydrants that found in the given circular dimension
      * @return List<SelectedHydrantDto> list of sorted selected hydrants in the given circular dimension
      */
@@ -217,7 +190,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     /**
      * find N nearest hydrants from the list of given hydrants and total length of firehoses. this method is the main business of the app
      *
-     * @param fireInfoDto            consists of fire coordination and number of trucks
+     * @param fireInfoDto          consists of fire coordination and number of trucks
      * @param sortedHydrantDtoList list of hydrants in the circular dimension
      * @return NearestHydrantsToFireDto - total firehoses length in meters
      * - list of N nearest hydrants used by the fire brigade, with its unitId and distance to the fire
