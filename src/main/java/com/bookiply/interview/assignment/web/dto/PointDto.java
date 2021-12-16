@@ -15,7 +15,8 @@ public class PointDto {
 
     @Override
     public String toString() {
-        return "PointDto{" +
+        return "" +
+//                "PointDto{" +
                 "coordinates=" + Arrays.toString(coordinates) +
                 '}';
     }

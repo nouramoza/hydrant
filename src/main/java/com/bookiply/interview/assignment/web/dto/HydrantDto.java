@@ -22,11 +22,11 @@ public class HydrantDto {
     public String toString() {
         return "HydrantDto{" +
                 ", the_geom=" + the_geom +
-                ", unitid='" + unitid + '\'' +
-                ", point_x=" + point_x +
-                ", point_y=" + point_y +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
+//                ", unitid='" + unitid + '\'' +
+//                ", point_x=" + point_x +
+//                ", point_y=" + point_y +
+//                ", latitude=" + latitude +
+//                ", longitude=" + longitude +
                 '}';
     }
 }

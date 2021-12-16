@@ -1,12 +1,14 @@
 package com.bookiply.interview.assignment.service.impl;
 
 import com.bookiply.interview.assignment.service.NearestFireHosesService;
+import com.bookiply.interview.assignment.utils.ConstantsUtil;
 import com.bookiply.interview.assignment.web.dto.*;
 import com.bookiply.interview.assignment.web.error.BadRequestAlertException;
 import com.bookiply.interview.assignment.web.error.ErrorConstants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -56,7 +58,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
 
         checkValidations(fireInfoDto);
 
-        List<HydrantDto> hydrantDtoList = getSortedNearestFireBrigades(fireInfoDto);
+        List<HydrantDto> hydrantDtoList = test2(fireInfoDto);
 
         List<SelectedHydrantDto> sortedHydrants = generateSelectedHydrants(fireInfoDto, hydrantDtoList);
 
@@ -109,6 +111,14 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
     private List<HydrantDto> getSortedNearestFireBrigades(FireInfoDto fireInfoDto) throws BadRequestAlertException {
 
         String url = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
+
+        StringBuilder whereStr = new StringBuilder("distance_in_meters(the_geom,'POINT(");
+        whereStr.append(fireInfoDto.getTheGeom().getCoordinates()[0]);
+        whereStr.append(" ");
+        whereStr.append(fireInfoDto.getTheGeom().getCoordinates()[1]);
+        whereStr.append(")') <= 1000000");
+
+
         StringBuilder orderStr = new StringBuilder("distance_in_meters(the_geom,'POINT(");
         orderStr.append(fireInfoDto.getTheGeom().getCoordinates()[0]);
         orderStr.append(" ");
@@ -116,9 +126,48 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         orderStr.append(")')");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+//                .queryParam("$where", whereStr)
+                .queryParam("$order", orderStr)
+                .queryParam("$limit", fireInfoDto.getNumberOfFireTrucks())
+                ;
+
+//        URI uri = builder.encode().build(false).toUri();
+
+        URI uri = UriComponentsBuilder.fromUri(builder.encode().build(false).toUri())
+                .build(true).toUri();
+        return callApi(uri);
+    }
+
+    private List<HydrantDto> test2(FireInfoDto fireInfoDto) throws BadRequestAlertException {
+
+        Double fireX = fireInfoDto.getTheGeom().getCoordinates()[0];
+        Double fireY = fireInfoDto.getTheGeom().getCoordinates()[1];
+
+        StringBuilder orderStr = new StringBuilder("((latitude+(");
+        orderStr.append(-fireY);
+        orderStr.append("))*(latitude+(");
+        orderStr.append(-fireY);
+        orderStr.append(")))+((longitude+(");
+        orderStr.append(-fireX);
+        orderStr.append("))*(longitude+(");
+        orderStr.append(-fireX);
+        orderStr.append(")))");
+
+        StringBuilder whereStr = new StringBuilder(orderStr.toString());
+        whereStr.append("<=");
+        whereStr.append(ConstantsUtil.DefaultValues.MAX_LENGTH_OF_FIRE_HOSE);
+
+        String url = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("$where", whereStr)
                 .queryParam("$order", orderStr)
                 .queryParam("$limit", fireInfoDto.getNumberOfFireTrucks());
-        URI uri = builder.encode().build(false).toUri();
+        URI uriPlus = builder.encode().build(false).toUri();
+
+        String strictlyEscapedQuery = StringUtils.replace(uriPlus.getRawQuery(), "+", "%2B");
+        URI uri = UriComponentsBuilder.fromUri(uriPlus)
+                .replaceQuery(strictlyEscapedQuery)
+                .build(true).toUri();
         return callApi(uri);
     }
 
@@ -171,8 +220,8 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         List<SelectedHydrantDto> finalSelectedHydrantDtoList = new ArrayList<>();
         IntStream.range(0, hydrantDtoList.size())
                 .forEach(i -> {
-                    Double xDistance = hydrantDtoList.get(i).getLatitude() - fireX,
-                            yDistance = hydrantDtoList.get(i).getLongitude() - fireY;
+                    Double xDistance = hydrantDtoList.get(i).getLongitude() - fireX,
+                            yDistance = hydrantDtoList.get(i).getLatitude() - fireY;
                     SelectedHydrantDto selectedHydrantDto = new SelectedHydrantDto(hydrantDtoList.get(i).getUnitid(),
                             (Math.sqrt((xDistance * xDistance) + (yDistance * yDistance))) * 1000);
                     finalSelectedHydrantDtoList.add(selectedHydrantDto);
