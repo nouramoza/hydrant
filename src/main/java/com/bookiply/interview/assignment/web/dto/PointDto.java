@@ -11,13 +11,6 @@ import java.util.Arrays;
 @Setter
 public class PointDto {
     private String type;
-    private Double[] coordinates;
 
-    @Override
-    public String toString() {
-        return "" +
-//                "PointDto{" +
-                "coordinates=" + Arrays.toString(coordinates) +
-                '}';
-    }
+    private Double[] coordinates;
 }

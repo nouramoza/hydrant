@@ -8,5 +8,6 @@ import lombok.*;
 @Setter
 public class SelectedHydrantDto {
     private String unitId;
+
     private Double distanceToFire;
 }

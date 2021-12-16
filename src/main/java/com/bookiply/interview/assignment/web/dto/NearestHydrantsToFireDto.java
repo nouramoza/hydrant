@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 public class NearestHydrantsToFireDto {
     private Double totalFirehosesLength;
+
     private List<SelectedHydrantDto> hydrants;
 
 }
