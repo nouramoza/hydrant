@@ -95,7 +95,7 @@ class ExceptionsTest {
         FireInfoDto fireInfoDto = new FireInfoDto();
         fireInfoDto.setLatitude(43.3658745);
         fireInfoDto.setLongitude(-45.25);
-        fireInfoDto.setNumberOfFireTrucks(1254L);
+        fireInfoDto.setNumberOfFireTrucks(10L);
 
         String inputStr = mapToJson(fireInfoDto);
         RequestBuilder req = post(FIND_NEAREST_FIREHOSES_QUERY_URI)
@@ -104,7 +104,7 @@ class ExceptionsTest {
 
         MvcResult mvcResult = this.mockMvc.perform(req)
                 .andExpect(content().string(containsString(ErrorConstants.InputValidationMessage.API_EXCEPTION_MSG)))
-                .andExpect(status().is(HttpStatus.NOT_ACCEPTABLE.value()))
+                .andExpect(status().is(HttpStatus.NOT_FOUND.value()))
                 .andDo(print())
                 .andReturn();
     }

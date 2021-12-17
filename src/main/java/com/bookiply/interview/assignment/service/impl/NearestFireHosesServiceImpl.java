@@ -9,6 +9,7 @@ import com.bookiply.interview.assignment.web.error.BusinessAlertException;
 import com.bookiply.interview.assignment.web.error.ErrorConstants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -29,6 +30,9 @@ import static com.bookiply.interview.assignment.utils.CalculationsHelper.getDist
 public class NearestFireHosesServiceImpl implements NearestFireHosesService {
 
     private static final String FIRE_INFO_DTO = "fireInfoDto";
+
+    @Value( "${cityOfNewyorkData.url}" )
+    private String apiUrl;
 
     /**
      * get N nearest hydrants and total length of fire hoses, all business done in code
@@ -124,7 +128,6 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
      * @return List<HydrantDto> list of hydrant in the given circular dimension
      */
     private List<HydrantDto> getAreaFireBrigades(FireInfoDto fireInfoDto) throws BusinessAlertException {
-        String url = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
 
         Double fireX = fireInfoDto.getTheGeom().getCoordinates()[0];
         Double fireY = fireInfoDto.getTheGeom().getCoordinates()[1];
@@ -136,7 +139,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         whereStr.append(")') <= ");
         whereStr.append(ConstantsUtil.DefaultValues.MAX_LENGTH_OF_FIRE_HOSE);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("$where", whereStr);
         URI uriPlus = builder.encode().build(false).toUri();
 
@@ -173,8 +176,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
         whereStr.append("<=");
         whereStr.append(Math.pow(ConstantsUtil.DefaultValues.MAX_LENGTH_OF_FIRE_HOSE, 2));
 
-        String url = "https://data.cityofnewyork.us/resource/5bgh-vtsn.json";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("$where", whereStr)
                 .queryParam("$order", orderStr)
                 .queryParam("$limit", fireInfoDto.getNumberOfFireTrucks());
@@ -196,7 +198,7 @@ public class NearestFireHosesServiceImpl implements NearestFireHosesService {
             hydrantDtoList = mapper.readValue(resultStr, new TypeReference<List<HydrantDto>>() {
             });
         } catch (Exception e) {
-            throw new BusinessAlertException(e.getMessage(),
+            throw new BusinessAlertException(ErrorConstants.InputValidationMessage.API_EXCEPTION_MSG,
                     FIRE_INFO_DTO, ErrorConstants.InputValidationMessage.API_EXCEPTION_KEY);
         }
         return hydrantDtoList;
